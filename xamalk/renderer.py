@@ -7,12 +7,9 @@ DLL = None
 from . import logger
 
 
-def load_dll(HOST_OS):
+def load_dll(HOST_OS, rootPath):
     global DLL
-    DLL = os.path.realpath(__file__)
-    DLL = os.path.dirname(DLL)
-    DLL = os.path.split(DLL)[0]
-    DLL = os.path.join(DLL, "libs", "renderer")
+    DLL = os.path.join(rootPath, "libs", "renderer")
     if HOST_OS == "Windows":
         DLL = os.path.join(DLL, "renderer.dll")
     else:
@@ -21,6 +18,10 @@ def load_dll(HOST_OS):
 
 
 class ColorCodes():
+    '''
+    Enum _Color from renderer.h
+
+    '''
     RED = 0
     AQUA = 1
     BLUE = 2
@@ -59,6 +60,10 @@ class Coords(ctypes.Structure):
 
 
 class Particle(ctypes.Structure):
+    '''
+    Structure _Particle from renderer.h with default values
+
+    '''
     _fields_ = [
         ("end", ctypes.c_char_p),
         ("text", ctypes.c_char_p),
@@ -81,20 +86,17 @@ class Particle(ctypes.Structure):
 
 
 def clear_screen():
-    global DLL
     DLL.clear_screen()
     logger.info("The screen has been cleared")
 
 
 def get_terminal_size():
-    global DLL
     resolution = TerminalSize.in_dll(DLL, "resolution")
     logger.info(f"Current terminal resolution: {resolution.cols}x{resolution.rows}")
     return resolution.cols, resolution.rows
 
 
 def color_print(text, bgcode=ColorCodes.NO_COLOR, fgcode=ColorCodes.NO_COLOR, end="\n"):
-    global DLL
     end = end.encode()
     text = text.encode()
     DLL.color_print.argtypes = [ctypes.c_char_p, ctypes.c_ubyte, ctypes.c_ubyte, ctypes.c_char_p]
@@ -103,20 +105,17 @@ def color_print(text, bgcode=ColorCodes.NO_COLOR, fgcode=ColorCodes.NO_COLOR, en
 
 
 def create_particles(amount):
-    global DLL
     DLL.create_particles.argtypes = [ctypes.c_uint]
     DLL.create_particles(amount)
     logger.info(f"New frame of {amount} particles was created")
 
 
 def set_particle(particle, index):
-    global DLL, Particle
     DLL.set_particle.argtypes = [ctypes.POINTER(Particle), ctypes.c_uint]
     DLL.set_particle(particle, index)
 
 
 def render_frame(amount):
-    global DLL
     DLL.render_frame.argtypes = [ctypes.c_uint]
     DLL.render_frame(amount)
     logger.info(f"Frame of {amount} particles was rendered")

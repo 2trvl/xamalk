@@ -3,14 +3,17 @@ import os
 import logging
 import platform
 
-def create_logger():
-    logger = logging.getLogger("AdminPanel")
+def get_xamalk_root_path():
+    rootPath = os.path.realpath(__file__)
+    rootPath = os.path.dirname(rootPath)
+    rootPath = os.path.split(rootPath)[0]
+    return rootPath
+
+def create_logger(rootPath):
+    logger = logging.getLogger("xamalk")
     logger.setLevel(logging.INFO)
 
-    fileHandler = os.path.realpath(__file__)
-    fileHandler = os.path.dirname(fileHandler)
-    fileHandler = os.path.split(fileHandler)[0]
-    fileHandler = os.path.join(fileHandler, "runtime.log")
+    fileHandler = os.path.join(rootPath, "runtime.log")
     fileHandler = logging.FileHandler(fileHandler, "w", "utf-8")
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     fileHandler.setFormatter(formatter)
@@ -21,14 +24,20 @@ def create_logger():
 def init():
     logger.info("Log created")
     logger.info(f"OS: {HOST_OS}")
-    renderer.load_dll(HOST_OS)
-    logger.info(f"Library: {renderer.DLL}")
+
+    events.load_dll(HOST_OS, rootPath)
+    logger.info(f"Events library: {events.DLL}")
+    
+    renderer.load_dll(HOST_OS, rootPath)
+    logger.info(f"Renderer library: {renderer.DLL}")
 
 
-logger = create_logger()
 HOST_OS = platform.system()
+rootPath = get_xamalk_root_path()
+logger = create_logger(rootPath)
 
+from . import events
 from . import renderer
 
 init()
-logger.info("Init executed, tui imported")
+logger.info("Init executed, xamalk imported")

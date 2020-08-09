@@ -1,7 +1,5 @@
 #include "../../include/renderer.h"
 
-extern TerminalSize resolution;
-
 int main(void)
 {
     ENABLE_ANSI

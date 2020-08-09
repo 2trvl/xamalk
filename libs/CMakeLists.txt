@@ -28,5 +28,16 @@ add_library(renderer SHARED src/renderer/renderer.c src/renderer/dllmain.c)
 install(TARGETS renderer DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/renderer)
 
 message(STATUS "Installing renderer test executable..")
-add_executable(test src/renderer/renderer.c src/renderer/test.c)
-install(TARGETS test DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/renderer)
+add_executable(renderer-test src/renderer/renderer.c src/renderer/test.c)
+install(TARGETS renderer-test DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/renderer)
+
+
+message(STATUS "Creating events..")
+
+message(STATUS "Installing events library..")
+add_library(events SHARED src/events/events.c src/events/dllmain.c)
+install(TARGETS events DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/events)
+
+message(STATUS "Installing events test executable..")
+add_executable(events-test src/events/events.c src/events/test.c)
+install(TARGETS events-test DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/events)

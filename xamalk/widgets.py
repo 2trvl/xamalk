@@ -9,8 +9,17 @@ class Drawer():
     '''
     Just lets you draw individual particles
 
-    '''
+    When you set the particle you can specify:
+    *  end - ending of color string (type: <class 'str'>)
+    *  text - content of the string (type: <class 'str'>)
+    *  bgcode - background color code (type: <class 'int'> from <class 'ColorCodes'>)
+    *  fgcode - foreground color code (type: <class 'int'> from <class 'ColorCodes'>)
+    *  position - position of color string on the screen (type: <class 'tuple'>)
+    *  milliseconds - time of waiting before output the string on the screen (type: <class 'int'>)
 
+    P.S. (0, 0) - position of the upper left corner of the console screen
+
+    '''
     def __init__(self):
         self.__index = None
         self.__amount = None
@@ -37,7 +46,7 @@ class Drawer():
         
         values = Particle._defaults_.copy()
 
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             if isinstance(value, str):
                 values[key] = value.encode()
                 continue
@@ -49,7 +58,7 @@ class Drawer():
             values[key] = value
         
         particle = Particle(index, **values)
-        particle = ctypes.pointer(particle)
+        particle = ctypes.byref(particle)
         particle = (index, particle)
         self.__particles.append(particle)
     

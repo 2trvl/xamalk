@@ -26,26 +26,35 @@ extern "C"
 {
 #endif
 
-typedef enum _EventState
+typedef enum _EventType
 {
     Press, 
     Release
-} EventState;
+} EventType;
 
 typedef struct _Shortcut
 {
     unsigned char amount;
-    unsigned char *virtual_keys;
+    unsigned char *virtualKeys;
 } Shortcut;
 
 typedef struct _Event
 {
-    void (*action)();
+    EventType type;
     Shortcut condition;
-    EventState state;
+    void *actionArguments;
+    void (*action)(void*);
 } Event;
 
-typedef enum _KEY
+typedef struct _States
+{
+    bool reading;
+    bool *status;
+    unsigned char amount;
+    bool **lastPressedVirtualKeys;
+} States;
+
+typedef enum _Key
 {
     LEFT_MOUSE_BUTTON,
     RIGHT_MOUSE_BUTTON,
@@ -141,8 +150,9 @@ typedef enum _KEY
     TYPEWRITER_SUBTRACT,
     TYPEWRITER_DOT,
     TILDE
-} KEY;
+} Key;
 
+extern bool eventsMainloopKey;
 extern unsigned char VIRTUAL_KEYS[94];
 
 void get_events_state();
@@ -151,10 +161,15 @@ void exit_events_mainloop();
 void execute_events_actions();
 void events_mainloop(Shortcut *quit);
 
-EXPORT extern Shortcut events_states;
+#ifdef _WIN32
+    DWORD WINAPI get_input_characters(void *data);
+#endif
 
+EXPORT extern States eventsStates;
+
+EXPORT void set_states_reading_flag(bool flag);  //  function only needed for python
 EXPORT void create_events(unsigned char amount);
-EXPORT void bind_event(Shortcut *condition, void (*action)(), EventState state, char index);
+EXPORT void bind_event(Shortcut *condition, EventType type, void (*action)(void*), void *actionArguments, unsigned char index);
 
 #ifdef __cplusplus 
 }

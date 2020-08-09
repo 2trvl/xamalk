@@ -4,7 +4,7 @@ unsigned char key = 1;
 
 #ifdef _WIN32
 
-    DWORD WINAPI Resizer(void *data) 
+    DWORD WINAPI resizer(void *data) 
     {
         while (key)
         {
@@ -24,7 +24,7 @@ unsigned char key = 1;
                 switch_screen(true);
                 change_cursor_visibility(false);
                 get_terminal_size();
-                HANDLE thread = CreateThread(NULL, 0, Resizer, NULL, 0, NULL);
+                HANDLE thread = CreateThread(NULL, 0, resizer, NULL, 0, NULL);
                 break;
 
             case DLL_PROCESS_DETACH:
