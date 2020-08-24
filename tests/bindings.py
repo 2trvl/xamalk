@@ -11,8 +11,8 @@ eventStack.create_events(4)
 
 eventStack.bind_event([Keys.X], EventType.Press, example_callback, "'X' was pressed")
 eventStack.bind_event([Keys.X], EventType.Release, example_callback, "'X' was released")
-eventStack.bind_event([Keys.CTRL, Keys.TYPEWRITER_ADD], EventType.Press, example_callback, "'CTRL' + '+' was pressed")
-eventStack.bind_event([Keys.CTRL, Keys.TYPEWRITER_ADD], EventType.Release, example_callback, "'CTRL' + '+' was released")
+eventStack.bind_event([Keys.LEFT_CTRL, Keys.TILDE], EventType.Press, example_callback, "'CTRL' + '`' was pressed")
+eventStack.bind_event([Keys.LEFT_CTRL, Keys.TILDE], EventType.Release, example_callback, "'CTRL' + '`' was released")
 
 eventStack.mainloop([Keys.Q])
 del eventStack.events

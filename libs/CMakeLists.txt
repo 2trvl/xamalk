@@ -14,18 +14,34 @@ if (${CMAKE_SYSTEM_VERSION} IN_LIST VT AND WIN32)
     add_compile_definitions(VT)
     message(STATUS "VT will be used for your system")
 
-else()
+else ()
     add_compile_definitions(ANSI)
     message(STATUS "ANSI will be used for your system")
 
-endif(${CMAKE_SYSTEM_VERSION} IN_LIST VT AND WIN32)
+endif (${CMAKE_SYSTEM_VERSION} IN_LIST VT AND WIN32)
+
+
+if (UNIX)
+    find_package(X11 REQUIRED)
+    include_directories(${X11_INCLUDE_DIR})
+    link_directories(${X11_LIBRARIES})
+    
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+endif (UNIX)
 
 
 message(STATUS "Creating renderer..")
 
 message(STATUS "Installing renderer library..")
 add_library(renderer SHARED src/renderer/renderer.c src/renderer/dllmain.c)
+
+if (UNIX)
+    target_link_libraries(renderer Threads::Threads)
+endif (UNIX)
+
 install(TARGETS renderer DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/renderer)
+
 
 message(STATUS "Installing renderer test executable..")
 add_executable(renderer-test src/renderer/renderer.c src/renderer/test.c)
@@ -36,8 +52,23 @@ message(STATUS "Creating events..")
 
 message(STATUS "Installing events library..")
 add_library(events SHARED src/events/events.c src/events/dllmain.c)
+
+if (APPLE)
+    target_link_libraries(events ${X11_LIBRARIES} Threads::Threads)
+elseif (UNIX)
+    target_link_libraries(events ${X11_LIBRARIES} Threads::Threads m)
+endif (APPLE)
+
 install(TARGETS events DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/events)
+
 
 message(STATUS "Installing events test executable..")
 add_executable(events-test src/events/events.c src/events/test.c)
+
+if (APPLE)
+    target_link_libraries(events-test ${X11_LIBRARIES} Threads::Threads)
+elseif (UNIX)
+    target_link_libraries(events-test ${X11_LIBRARIES} Threads::Threads m)
+endif (APPLE)
+
 install(TARGETS events-test DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/events)

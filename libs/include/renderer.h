@@ -29,6 +29,7 @@
     #include <Windows.h>
 #else
     #include <unistd.h>
+    #include <termios.h>
     #include <pthread.h>
     #include <sys/ioctl.h>
 
@@ -88,6 +89,7 @@ void free_renderer_memory();
 void move_cursor(Coords *position);
 void switch_screen(bool alternate);
 void time_sleep(unsigned int milliseconds);
+void change_stdin_visibility(bool visibility);
 void change_cursor_visibility(bool visibility);
 
 #ifdef _WIN32
@@ -111,12 +113,7 @@ EXPORT void clear_screen();
 EXPORT void render_frame(unsigned int amount);
 EXPORT void create_particles(unsigned int amount);
 EXPORT void set_particle(Particle *particle, unsigned int index);
-
-#if defined(VT)
-    EXPORT void color_print(char *text, Color bgcode, Color fgcode, char *end);
-#elif defined(ANSI)
-    EXPORT char * color_print(char *text, Color bgcode, Color fgcode, char *end);
-#endif
+EXPORT void color_print(char *text, Color bgcode, Color fgcode, char *end);
 
 #ifdef __cplusplus 
 }

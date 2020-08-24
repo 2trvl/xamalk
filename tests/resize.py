@@ -7,7 +7,7 @@ from xamalk.renderer import color_print, get_terminal_size, clear_screen
 try:
     while True:
         color_print(text=str(get_terminal_size()), end="")
-        sleep(0.3)
+        sleep(0.2)
         clear_screen()
 except KeyboardInterrupt:
     pass

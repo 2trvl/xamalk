@@ -5,6 +5,9 @@ int main(void)
     ENABLE_ANSI
     CREATE_ALTERNATE_SCREEN_BUFFER
     switch_screen(true);
+    #ifndef VT
+        change_stdin_visibility(false);    //  on VT it'll block KeyboardInterrupt and other calls
+    #endif
     change_cursor_visibility(false);
     get_terminal_size();
 
@@ -60,6 +63,9 @@ int main(void)
 
     render_frame(2);
     switch_screen(false);
+    #ifndef VT
+        change_stdin_visibility(true);
+    #endif
     change_cursor_visibility(true);
     free_renderer_memory();
     return 0;

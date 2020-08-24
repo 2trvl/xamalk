@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-import ctypes
 from xamalk import logger
 from xamalk.widgets import Drawer
-from xamalk.events import EventsManager, Keys
+from xamalk.events import Keys, EventsManager
 from xamalk.renderer import ColorCodes, color_print
 
 eventStack = EventsManager()

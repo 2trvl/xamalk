@@ -40,8 +40,7 @@ Particle *currentFrame = NULL;
         COORD dwCursorPosition;
         dwCursorPosition.X = position->X;
         dwCursorPosition.Y = position->Y;
-        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleCursorPosition(hConsoleOutput, dwCursorPosition);
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), dwCursorPosition);
     }
 
     void switch_screen(bool alternate)
@@ -76,6 +75,7 @@ Particle *currentFrame = NULL;
     void change_cursor_visibility(bool visibility)
     {
         CONSOLE_CURSOR_INFO lpConsoleCursorInfo;
+        memset(&lpConsoleCursorInfo, 0, sizeof(lpConsoleCursorInfo));
         lpConsoleCursorInfo.dwSize = 100;
         if (visibility)
             lpConsoleCursorInfo.bVisible = TRUE;
@@ -95,6 +95,7 @@ Particle *currentFrame = NULL;
                                                             NULL);
         //  copy primary screen buffer size to the alternate screen buffer
         CONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo;
+        memset(&lpConsoleScreenBufferInfo, 0, sizeof(lpConsoleScreenBufferInfo));
         GetConsoleScreenBufferInfo(hPrimaryConsoleOutput, &lpConsoleScreenBufferInfo);
         lpConsoleScreenBufferInfo.dwMaximumWindowSize.Y += 1;
         SetConsoleScreenBufferSize(hAlternateConsoleOutput, lpConsoleScreenBufferInfo.dwMaximumWindowSize);
@@ -116,11 +117,10 @@ Particle *currentFrame = NULL;
         printf(text);
         set_color(0x0, 0x7);
         printf(end);
+        fflush(stdout);
     }
 
 #elif defined(ANSI)
-
-    bool renderMode = false;
 
     char COLOR_CODES[2][15][6] = {
         { "0;41m", "0;46m", "0;44m", "1;40m", "0;40m", "0;42m", "1;47m", "0;45m", "1;43m", "1;41m", "1;44m", "0;47m", "1;42m", "1;45m", "\0\0\0\0\0" },    //  Background
@@ -129,33 +129,45 @@ Particle *currentFrame = NULL;
     void clear_screen()
     {
         printf("\033[2J\033[H");
+        fflush(stdout);
     }
 
     void move_cursor(Coords *position)
     {
         printf("\033[%d;%dH", position->Y+1, position->X+1);
+        fflush(stdout);
     }
 
     void switch_screen(bool alternate)
     {
         if (alternate)
+        {
             printf("\033[?1049h");
+            fflush(stdout);
+        }
         else
         {
             time_sleep(1000);
             printf("\033[2J\033[H\033[?1049l");
+            fflush(stdout);
         }
     }
 
     void change_cursor_visibility(bool visibility)
     {
         if (visibility)
+        {
             printf("\033[?25h");
+            fflush(stdout);
+        }
         else
+        {
             printf("\033[?25l");
+            fflush(stdout);
+        }
     }
 
-    char * color_print(char *text, Color bgcode, Color fgcode, char *end)
+    void color_print(char *text, Color bgcode, Color fgcode, char *end)
     {
         unsigned int length;
         length = (unsigned int)(strlen(text) + strlen(end));
@@ -186,12 +198,9 @@ Particle *currentFrame = NULL;
         else
             snprintf(string, length+1, "%s%s", text, end);
 
-        if (renderMode)
-            return string;
-
         printf(string);
+        fflush(stdout);
         free(string);
-        return NULL;
     }
 
 #endif
@@ -206,6 +215,7 @@ Particle *currentFrame = NULL;
     void get_terminal_size()
     {
         CONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo;
+        memset(&lpConsoleScreenBufferInfo, 0, sizeof(lpConsoleScreenBufferInfo));
         #ifdef VT
         if (GetConsoleScreenBufferInfo(hAlternateConsoleOutput, &lpConsoleScreenBufferInfo))
         #else
@@ -215,6 +225,18 @@ Particle *currentFrame = NULL;
             resolution.cols = lpConsoleScreenBufferInfo.srWindow.Right - lpConsoleScreenBufferInfo.srWindow.Left + 1;
             resolution.rows = lpConsoleScreenBufferInfo.srWindow.Bottom - lpConsoleScreenBufferInfo.srWindow.Top + 1;
         }
+    }
+
+    void change_stdin_visibility(bool visibility)
+    {
+        DWORD mode = 0x0;
+        HANDLE currentHandle = GetStdHandle(STD_INPUT_HANDLE);
+        GetConsoleMode(currentHandle, &mode);
+
+        if (visibility)
+            SetConsoleMode(currentHandle, mode & (ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+        else
+            SetConsoleMode(currentHandle, mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
     }
 
     void enable_virtual_terminal_processing()
@@ -237,6 +259,19 @@ Particle *currentFrame = NULL;
         #else
             usleep(milliseconds * 1000);
         #endif
+    }
+
+    void change_stdin_visibility(bool visibility)
+    {
+        struct termios mode;
+        tcgetattr(STDIN_FILENO, &mode);
+        
+        if (visibility)
+            mode.c_lflag &= (ICANON | ECHO);
+        else
+            mode.c_lflag &= ~(ICANON | ECHO);
+        
+        tcsetattr(STDIN_FILENO, TCSANOW, &mode);
     }
 
     void get_terminal_size()
@@ -285,31 +320,15 @@ void set_particle(Particle *particle, unsigned int index)
 
 void render_frame(unsigned int amount)
 {
-    #ifdef ANSI
-        char *string;
-        renderMode = true;
-    #endif
     Particle *currentParticle;
     for (register unsigned int index = 0; index < amount; ++index)
     {
         currentParticle = currentFrame + index;
         time_sleep(currentParticle->milliseconds);
         move_cursor(currentParticle->position);
-        #if defined(ANSI)
-            string = color_print(currentParticle->text,
-                                 currentParticle->bgcode, 
-                                 currentParticle->fgcode,
-                                 currentParticle->end);
-            printf(string);
-            free(string);
-        #elif defined(VT)
-            color_print(currentParticle->text, 
-                        currentParticle->bgcode, 
-                        currentParticle->fgcode,
-                        currentParticle->end);
-        #endif
+        color_print(currentParticle->text, 
+                    currentParticle->bgcode, 
+                    currentParticle->fgcode,
+                    currentParticle->end);
     }
-    #ifdef ANSI
-        renderMode = false;
-    #endif
 }
